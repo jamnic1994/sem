@@ -1,9 +1,10 @@
 package com.napier.sem;
 
-import java.sql.*;
-
-public class Employee {
-
+/**
+ * Represents an employee
+ */
+public class Employee
+{
     /**
      * Employee number
      */

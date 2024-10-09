@@ -4,6 +4,21 @@ import java.sql.*;
 
 public class App
 {
+    public static void main(String[] args)
+    {
+        // Create new Application
+        App a = new App();
+
+        // Connect to database
+        a.connect();
+        // Get Employee
+        Employee emp = a.getEmployee(255530);
+        // Display results
+        a.displayEmployee(emp);
+
+        // Disconnect from database
+        a.disconnect();
+    }
 
     /**
      * Connection to MySQL database.
@@ -69,16 +84,66 @@ public class App
             }
         }
     }
-
-    public static void main(String[] args)
+    public Employee getEmployee(int ID)
     {
-        // Create new Application
-        App a = new App();
+        try
+        {
+            // Create an SQL statement
+            Statement stmt = con.createStatement();
 
-        // Connect to database
-        a.connect();
+            // Create string for SQL statement
+            String strSelect =
+                    "SELECT employees.emp_no AS emp_no_employee, employees.first_name, employees.last_name, titles.title, salaries.salary, "
+                            + "departments.dept_name, CONCAT(manager.first_name, ' ', manager.last_name) AS manager_name "
+                            + "FROM employees "
+                            + "JOIN titles ON employees.emp_no = titles.emp_no "
+                            + "JOIN salaries ON employees.emp_no = salaries.emp_no "
+                            + "JOIN dept_emp ON employees.emp_no = dept_emp.emp_no "
+                            + "JOIN departments ON dept_emp.dept_no = departments.dept_no "
+                            + "JOIN dept_manager ON departments.dept_no = dept_manager.dept_no "
+                            + "JOIN employees AS manager ON dept_manager.emp_no = manager.emp_no "
+                            + "WHERE employees.emp_no = " + ID;
 
-        // Disconnect from database
-        a.disconnect();
+            // Execute SQL statement
+            ResultSet rset = stmt.executeQuery(strSelect);
+
+            // Check if a result is returned
+            if (rset.next())
+            {
+                Employee emp = new Employee();
+                emp.emp_no = rset.getInt("emp_no_employee");
+                emp.first_name = rset.getString("first_name");
+                emp.last_name = rset.getString("last_name");
+                emp.title = rset.getString("title");
+                emp.salary = rset.getInt("salary");
+                emp.dept_name = rset.getString("dept_name");
+                emp.manager = rset.getString("manager_name");
+                return emp;
+            }
+            else
+                return null;
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            System.out.println("Failed to get employee details");
+            return null;
+        }
+    }
+
+
+    public void displayEmployee(Employee emp)
+    {
+        if (emp != null)
+        {
+            System.out.println(
+                    emp.emp_no + " "
+                            + emp.first_name + " "
+                            + emp.last_name + "\n"
+                            + emp.title + "\n"
+                            + "Salarys:" + emp.salary + "\n"
+                            + emp.dept_name + "\n"
+                            + "Manager: " + emp.manager + "\n");
+        }
     }
 }
